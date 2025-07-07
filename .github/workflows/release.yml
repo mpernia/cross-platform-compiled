@@ -1,0 +1,333 @@
+name: Build Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'  # Push events to tags matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build-linux:
+    name: Build Linux Binary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential g++ make cmake zlib1g-dev
+
+      - name: Build Linux binary
+        run: |
+          make linux
+
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-binary
+          path: dist/my_app_linux
+          if-no-files-found: error
+
+  build-linux-qt:
+    name: Build Linux Qt GUI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential g++ make cmake zlib1g-dev
+          sudo apt-get install -y qtbase5-dev qt5-qmake
+          
+      - name: Build Qt example
+        run: |
+          cd examples/gui/qt
+          make
+
+      - name: Upload Qt binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-qt-binary
+          path: dist/my_qt_app_linux
+          if-no-files-found: error
+
+  build-linux-gtk:
+    name: Build Linux GTK GUI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential g++ make cmake zlib1g-dev
+          sudo apt-get install -y libgtk-3-dev
+          
+      - name: Build GTK example
+        run: |
+          cd examples/gui/gtk
+          make
+
+      - name: Upload GTK binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-gtk-binary
+          path: dist/my_gtk_app_linux
+          if-no-files-found: error
+
+  build-linux-wx:
+    name: Build Linux wxWidgets GUI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential g++ make cmake zlib1g-dev
+          sudo apt-get install -y libwxgtk3.0-gtk3-dev
+          
+      - name: Build wxWidgets example
+        run: |
+          cd examples/gui/wx
+          make
+
+      - name: Upload wxWidgets binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-wx-binary
+          path: dist/my_wx_app_linux
+          if-no-files-found: error
+
+  build-macos:
+    name: Build macOS Binary
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install cmake make
+
+      - name: Build macOS binary
+        run: |
+          make macos
+
+      - name: Upload macOS binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-binary
+          path: dist/my_app_macos
+          if-no-files-found: error
+
+  build-macos-qt:
+    name: Build macOS Qt GUI
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install cmake make qt@5
+          echo 'export PATH="/usr/local/opt/qt@5/bin:$PATH"' >> ~/.bash_profile
+          export PATH="/usr/local/opt/qt@5/bin:$PATH"
+
+      - name: Build Qt example
+        run: |
+          cd examples/gui/qt
+          make
+
+      - name: Upload Qt binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-qt-binary
+          path: dist/my_qt_app_macos
+          if-no-files-found: error
+
+  build-macos-wx:
+    name: Build macOS wxWidgets GUI
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install cmake make wxwidgets
+
+      - name: Build wxWidgets example
+        run: |
+          cd examples/gui/wx
+          make
+
+      - name: Upload wxWidgets binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-wx-binary
+          path: dist/my_wx_app_macos
+          if-no-files-found: error
+
+  build-windows:
+    name: Build Windows Binary
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-cmake
+            make
+
+      - name: Build Windows binary
+        shell: msys2 {0}
+        run: |
+          make windows
+
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-binary
+          path: dist/my_app_windows.exe
+          if-no-files-found: error
+
+  build-windows-qt:
+    name: Build Windows Qt GUI
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-cmake
+            make
+            mingw-w64-x86_64-qt5
+
+      - name: Build Qt example
+        shell: msys2 {0}
+        run: |
+          cd examples/gui/qt
+          make
+
+      - name: Upload Qt binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-qt-binary
+          path: dist/my_qt_app_windows.exe
+          if-no-files-found: error
+
+  build-windows-wx:
+    name: Build Windows wxWidgets GUI
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-cmake
+            make
+            mingw-w64-x86_64-wxwidgets
+
+      - name: Build wxWidgets example
+        shell: msys2 {0}
+        run: |
+          cd examples/gui/wx
+          make
+
+      - name: Upload wxWidgets binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-wx-binary
+          path: dist/my_wx_app_windows.exe
+          if-no-files-found: error
+
+  create-release:
+    name: Create Release
+    needs: [
+      build-linux, build-macos, build-windows, 
+      build-linux-qt, build-linux-gtk, build-linux-wx,
+      build-macos-qt, build-macos-wx,
+      build-windows-qt, build-windows-wx
+    ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: dist
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-binaries
+          # CLI Binaries
+          cp dist/linux-binary/my_app_linux release-binaries/
+          cp dist/macos-binary/my_app_macos release-binaries/
+          cp dist/windows-binary/my_app_windows.exe release-binaries/
+          
+          # Qt GUI Binaries
+          cp dist/linux-qt-binary/my_qt_app_linux release-binaries/
+          cp dist/macos-qt-binary/my_qt_app_macos release-binaries/
+          cp dist/windows-qt-binary/my_qt_app_windows.exe release-binaries/
+          
+          # GTK GUI Binaries
+          cp dist/linux-gtk-binary/my_gtk_app_linux release-binaries/
+          
+          # wxWidgets GUI Binaries
+          cp dist/linux-wx-binary/my_wx_app_linux release-binaries/
+          cp dist/macos-wx-binary/my_wx_app_macos release-binaries/
+          cp dist/windows-wx-binary/my_wx_app_windows.exe release-binaries/
+          
+          chmod +x release-binaries/*
+          ls -la release-binaries/
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            # CLI Binaries
+            release-binaries/my_app_linux
+            release-binaries/my_app_macos
+            release-binaries/my_app_windows.exe
+            # Qt GUI Binaries
+            release-binaries/my_qt_app_linux
+            release-binaries/my_qt_app_macos
+            release-binaries/my_qt_app_windows.exe
+            # GTK GUI Binaries
+            release-binaries/my_gtk_app_linux
+            # wxWidgets GUI Binaries
+            release-binaries/my_wx_app_linux
+            release-binaries/my_wx_app_macos
+            release-binaries/my_wx_app_windows.exe
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
